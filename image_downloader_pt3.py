@@ -30,26 +30,14 @@ def fetch_http_response(url_path):
     # returns the http response given by the url
     return response
 
-# This fetches the html page from google website using our fetch function
-response = fetch_http_response("/")
-
-# decode the response
-decoded_data = response.decode()
-
 # split the response into 2 parts - header and body
-response_parts = decoded_data.split("\r\n\r\n")
+response_parts =  fetch_http_response("/").decode().split("\r\n\r\n")
 
 # split the header part into response and header values
 http_header = response_parts[0].split("\r\n")
 
 # split the http response into 3 parts - protocol, response code, response message
-http_response = http_header[0].split()
-
-# extract the http response code
-response_code = http_response[1]
-
-# extract the response message
-response_message = http_response[2]
+_, response_code, response_message = http_header[0].split()
 
 # extract the header data
 http_header_response = response_parts[0]
@@ -88,43 +76,26 @@ def find_tags(html, start_param, end_param, last_element):
     img_string = img_string[:-1]
     return img_string
 
-# extract the image tags from the html body
-img_tags = find_tags(html_data, "<img", ">", 1)
+def find_imgs(img_tags):
+    result_list = []
+    for img_srcs in img_tags.split(" "):
+        if img_srcs.find("src=") != -1:
+            result_list.append(img_srcs[5:-1])
+    return result_list
 
 # extract the source paths from the image tags
-src_paths = find_tags(img_tags, "src", ".png", 4)
-
-# Split the src path by space
-src_path_parts = src_paths.split(" ")
-
-# Initialize an empty array
-img_path_parts = []
-
-# iterate through src path and extract the image path 
-for src_path_part in src_path_parts:
-    img_path_parts.append(find_tags((src_path_part), "/images", ".png", 4))
-
-# function to download the image and save it 
-def download_image(response, image_name):
-    response_parts = response.split(b'\r\n\r\n')
-    create_file(image_name, response_parts[1])
+src_path_parts = find_imgs(find_tags(html_data, "<img", ">", 1))
 
 # Function to create a new file and save image to the file
 def create_file(img_name, img):
     with open(img_name, "wb") as f:
         f.write(img)
 
-# initialize an empty array
-img_paths = []
+# function to download the image and save it 
+def download_image(response, image_name):
+    response_parts = response.split(b'\r\n\r\n')
+    create_file(image_name, response_parts[1])
 
 # iterate through the images paths to download the images
-for img_path in img_path_parts:
+for img_path in src_path_parts:
     download_image(fetch_http_response(img_path), img_path.split("/").pop())
-
-
-
-
-
-
-
-    
