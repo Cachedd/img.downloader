@@ -1,3 +1,3 @@
 # img.downloader
 
-This is a simple python program to download images from a website
+This is a simple python program to download media from a website
